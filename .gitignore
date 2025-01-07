@@ -3,3 +3,5 @@ __pycache__/
 test.sh
 
 src/test_textnode.py
+
+src/test_htmlnode.py
