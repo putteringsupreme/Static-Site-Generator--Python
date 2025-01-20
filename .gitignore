@@ -7,3 +7,5 @@ src/test_textnode.py
 src/test_htmlnode.py
 
 src/test_conversions.py
+
+src/test_extract_markdown.py
