@@ -1,3 +1,4 @@
+import re
 from enum import Enum
 
 class TextType(Enum):
@@ -43,3 +44,33 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
                 split_nodes.append(TextNode(sections[i], text_type))
         new_nodes.extend(split_nodes)
     return new_nodes
+
+def extract_markdown_images(text): #extracts image links and alt text into a list of paired tuples
+    return re.findall(r"!\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
+   
+
+def extraact_markdown_links(text): #extracts links and alt text into a list of paired tuples
+    return re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
+
+def split_nodes_image(old_nodes):
+    split_texts = []
+    new_nodes = []
+    text_texts = []
+    for node in old_nodes:
+        list_text = re.split( r"[\[\]\(\)]", node.text)
+        for i in range(len(list_text)):
+            if list_text[i] != '':
+                split_texts.append(list_text[i])
+                continue
+        for i in range(len(split_texts)):
+            if i == 0 or i % 3 == 0:
+                text_texts.append(split_texts[i])
+                continue
+    
+    if len(split_texts) % 3 != 0:
+        raise ValueError("Invalid markdown, formatted section not closed or no alt text provided")
+    
+    return new_nodes
+
+def split_nodes_link(old_nodes):
+    pass
