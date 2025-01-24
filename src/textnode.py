@@ -49,28 +49,53 @@ def extract_markdown_images(text): #extracts image links and alt text into a lis
     return re.findall(r"!\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
    
 
-def extraact_markdown_links(text): #extracts links and alt text into a list of paired tuples
+def extract_markdown_links(text): #extracts links and alt text into a list of paired tuples
     return re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
 
 def split_nodes_image(old_nodes):
-    split_texts = []
-    new_nodes = []
-    text_texts = []
-    for node in old_nodes:
-        list_text = re.split( r"[\[\]\(\)]", node.text)
-        for i in range(len(list_text)):
-            if list_text[i] != '':
-                split_texts.append(list_text[i])
-                continue
-        for i in range(len(split_texts)):
-            if i == 0 or i % 3 == 0:
-                text_texts.append(split_texts[i])
-                continue
-    
-    if len(split_texts) % 3 != 0:
-        raise ValueError("Invalid markdown, formatted section not closed or no alt text provided")
-    
-    return new_nodes
+    result = []
+    for old_node in old_nodes:
+        text = old_node.text
+        image_tuples = extract_markdown_images(text)    
+        if not image_tuples:
+            result.append(TextNode(text, TextType.TEXT))
+            continue
+        
+        for alt, url in image_tuples:
+            image_markdown = f"![{alt}]({url})"
+            sections = text.split(image_markdown, 1)
+
+            if sections[0]:
+                result.append(TextNode(sections[0], TextType.TEXT))
+
+            result.append(TextNode(alt, TextType.IMAGE, url))   
+
+            text = sections[1]
+        if text:
+            result.append(TextNode(text, TextType.TEXT))
+                
+    return result
 
 def split_nodes_link(old_nodes):
-    pass
+    result = []
+    for old_node in old_nodes:
+        text = old_node.text
+        link_tuples = extract_markdown_links(text)    
+        if not link_tuples:
+            result.append(TextNode(text, TextType.TEXT))
+            continue
+        
+        for alt, url in link_tuples:
+            link_markdown = f"[{alt}]({url})"
+            sections = text.split(link_markdown, 1)
+
+            if sections[0]:
+                result.append(TextNode(sections[0], TextType.TEXT))
+
+            result.append(TextNode(alt, TextType.LINK, url))   
+
+            text = sections[1]
+        if text:
+            result.append(TextNode(text, TextType.TEXT))
+                
+    return result
