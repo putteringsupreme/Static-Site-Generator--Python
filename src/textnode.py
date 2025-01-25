@@ -55,6 +55,9 @@ def extract_markdown_links(text): #extracts links and alt text into a list of pa
 def split_nodes_image(old_nodes):
     result = []
     for old_node in old_nodes:
+        if old_node.text_type != TextType.TEXT:
+            result.append(old_node)
+            continue
         text = old_node.text
         image_tuples = extract_markdown_images(text)    
         if not image_tuples:
@@ -79,6 +82,10 @@ def split_nodes_image(old_nodes):
 def split_nodes_link(old_nodes):
     result = []
     for old_node in old_nodes:
+        if old_node.text_type != TextType.TEXT:
+            result.append(old_node)
+            continue
+    
         text = old_node.text
         link_tuples = extract_markdown_links(text)    
         if not link_tuples:
@@ -99,3 +106,18 @@ def split_nodes_link(old_nodes):
             result.append(TextNode(text, TextType.TEXT))
                 
     return result
+
+def text_to_textnodes(text): #takes a string of markdown and returns a list of textnodes in order
+    nodes = [TextNode(text, TextType.TEXT)]
+
+    image_split = split_nodes_image(nodes)
+
+    link_split = split_nodes_link(image_split)
+
+    bold_split = split_nodes_delimiter(link_split, "**", TextType.BOLD)
+
+    italics_split = split_nodes_delimiter(bold_split, "*", TextType.ITALIC)
+
+    code_split = split_nodes_delimiter(italics_split, "`", TextType.CODE)
+
+    return code_split
