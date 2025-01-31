@@ -9,3 +9,5 @@ src/test_htmlnode.py
 src/test_conversions.py
 
 src/test_extract_markdown.py
+
+src/test_markdown_handler.py
