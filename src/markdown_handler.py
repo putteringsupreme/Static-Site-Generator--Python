@@ -137,3 +137,14 @@ def markdown_to_html_node(markdown):
 
 
     return parent_node
+
+
+def extract_title(markdown): 
+    # takes a string from the markdown file "# " from the markdown file. ie. extract_title("# Hello") should return "Hello"
+    lines = markdown.split("\n")
+    
+    for line in lines:
+        if line.startswith("# "):
+            return line[2:].strip()
+    
+    raise Exception("Improper Markdown: No h1 header found")
