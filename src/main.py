@@ -1,8 +1,6 @@
-import http
+import sys
 import os
 import shutil
-from textnode import TextType, TextNode
-from htmlnode import HTMLNode, LeafNode, ParentNode
 from markdown_handler import markdown_to_html_node, extract_title
 
 #find current directory
@@ -12,29 +10,32 @@ root_dir = os.path.dirname(current_dir)
 #static folder path
 static_dir = os.path.join(root_dir, "static")
 #public folder path
-public_dir = os.path.join(root_dir, "public")
+docs_dir = os.path.join(root_dir, "docs")
 #content folder path
 content_dir = os.path.join(root_dir, "content")
 #html path
 template_path = os.path.join(root_dir, "template.html")
 #markdown file path, update the index.md file with your markdown, then run main.sh to generate a site
 index_markdown_path = os.path.join(content_dir, "index.md")
-#public html index path
-public_index_html_path = os.path.join(public_dir, "index.html")
+
+
+if len (sys.argv) > 1:
+    basepath = sys.argv[1]
+else:
+    basepath = "/"
 
 
 def main():
-    recreate_public()
+    recreate_docs()
     
-    copy_static_recursive(static_dir, public_dir)
+    copy_static_recursive(static_dir, docs_dir)
 
-    generate_pages_recursive(content_dir, template_path, public_dir)
+    generate_pages_recursive(content_dir, template_path, docs_dir, basepath)
 
-
-def recreate_public():
-    if os.path.exists(public_dir):
-        shutil.rmtree(public_dir)
-    os.mkdir(public_dir)
+def recreate_docs():
+    if os.path.exists(docs_dir):
+        shutil.rmtree(docs_dir)
+    os.mkdir(docs_dir)
 
 def copy_static_recursive(src_path, dst_path): #copy src folder contents into dst folder can be used for directories other than the "static" dir
     src_entries = os.listdir(src_path)
@@ -49,7 +50,7 @@ def copy_static_recursive(src_path, dst_path): #copy src folder contents into ds
             os.mkdir(dst_entry)
             copy_static_recursive(src_entry, dst_entry)
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
     
     with open(from_path, "r") as markdown_file:
@@ -66,13 +67,13 @@ def generate_page(from_path, template_path, dest_path):
 
 
     #replace the placehodler {{ Title }} and {{ Content }} in our template string
-    template = template.replace("{{ Title }}", title).replace("{{ Content }}", html_content)
+    template = template.replace("{{ Title }}", title).replace("{{ Content }}", html_content).replace('href="/', f'href="{basepath}').replace('src="/',f'src="{basepath}')
 
     #write the new template stringinto the destination file
     with open(dest_path, "w") as dest_file:
         dest_file.write(template)
 
-def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, basepath):
     content_dir_list = os.listdir(dir_path_content)
     for item in content_dir_list:
         item_path = os.path.join(dir_path_content, item)        
@@ -88,7 +89,7 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
             os.makedirs(os.path.dirname(dest_file_path), exist_ok=True)
 
 
-            generate_page(item_path, template_path, dest_file_path)
+            generate_page(item_path, template_path, dest_file_path, basepath)
         elif os.path.isdir(item_path):
             #create the corresponding directory in the public folder
             rel_dir_path = os.path.relpath(item_path, dir_path_content)
@@ -96,7 +97,7 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
             os.makedirs(dest_subdir_path, exist_ok=True)
 
             #recurse into directory
-            generate_pages_recursive(item_path, template_path, dest_subdir_path)
+            generate_pages_recursive(item_path, template_path, dest_subdir_path, basepath)
         
 
     
