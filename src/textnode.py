@@ -118,6 +118,8 @@ def text_to_textnodes(text): #takes a string of markdown and returns a list of t
 
     italics_split = split_nodes_delimiter(bold_split, "*", TextType.ITALIC)
 
-    code_split = split_nodes_delimiter(italics_split, "`", TextType.CODE)
+    underscore_italics_split = split_nodes_delimiter(italics_split, "_", TextType.ITALIC)
+
+    code_split = split_nodes_delimiter(underscore_italics_split, "`", TextType.CODE)
 
     return code_split

@@ -28,7 +28,7 @@ def main():
     
     copy_static_recursive(static_dir, public_dir)
 
-    generate_page(index_markdown_path, template_path, public_index_html_path)
+    generate_pages_recursive(content_dir, template_path, public_dir)
 
 
 def recreate_public():
@@ -36,7 +36,7 @@ def recreate_public():
         shutil.rmtree(public_dir)
     os.mkdir(public_dir)
 
-def copy_static_recursive(src_path, dst_path): #copy src folder contents into dst folder
+def copy_static_recursive(src_path, dst_path): #copy src folder contents into dst folder can be used for directories other than the "static" dir
     src_entries = os.listdir(src_path)
 
     for entry in src_entries:
@@ -72,7 +72,32 @@ def generate_page(from_path, template_path, dest_path):
     with open(dest_path, "w") as dest_file:
         dest_file.write(template)
 
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+    content_dir_list = os.listdir(dir_path_content)
+    for item in content_dir_list:
+        item_path = os.path.join(dir_path_content, item)        
+        
+        if item.endswith(".md") and os.path.isfile(item_path):
+            
+            # as an example, This would convert "/content/blog/majesty.md" to "/public/blog/majesty.html"
+            rel_path = os.path.relpath(item_path, dir_path_content)  # Gets "blog/majesty.md"
+            dest_file_path = os.path.join(dest_dir_path, rel_path)  # Joins with public dir
+            dest_file_path = os.path.splitext(dest_file_path)[0] + ".html"  # Changes extension
 
+            # Make sure the directory exists
+            os.makedirs(os.path.dirname(dest_file_path), exist_ok=True)
+
+
+            generate_page(item_path, template_path, dest_file_path)
+        elif os.path.isdir(item_path):
+            #create the corresponding directory in the public folder
+            rel_dir_path = os.path.relpath(item_path, dir_path_content)
+            dest_subdir_path = os.path.join(dest_dir_path, rel_dir_path)
+            os.makedirs(dest_subdir_path, exist_ok=True)
+
+            #recurse into directory
+            generate_pages_recursive(item_path, template_path, dest_subdir_path)
+        
 
     
 
